@@ -65,8 +65,30 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "ma.zer0ne.ocr"
+            packageName = "Zer0ne-OCR"
             packageVersion = "1.0.0"
+            description = "AI-powered Invoice OCR Application"
+            vendor = "Zer0ne"
+            copyright = "© 2026 Zer0ne. All rights reserved."
+
+            windows {
+                menuGroup = "Zer0ne"
+                // Generates a UUID for upgradeUuid (required for MSI)
+                upgradeUuid = "e8c9a5f2-4b3d-4e6a-9f1c-8d7b6a5e4c3d"
+                dirChooser = true
+                perUserInstall = true
+                shortcut = true
+                menu = true
+            }
+
+            linux {
+                menuGroup = "Zer0ne"
+                shortcut = true
+            }
+
+            macOS {
+                bundleID = "ma.zer0ne.ocr"
+            }
         }
     }
 }
