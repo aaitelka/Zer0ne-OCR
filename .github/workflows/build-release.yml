@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  VERSION: "1.0.0-beta"
+  VERSION: "1.0.0-alpha"
 
 jobs:
   build-windows:
@@ -204,7 +204,7 @@ jobs:
             artifacts/macos-dmg/*.dmg
             artifacts/linux-deb/*.deb
           body: |
-            ## 🚀 First Beta Release - v${{ env.VERSION }}
+            ## 🚀 First Alpha Release - v${{ env.VERSION }}
 
             ### Features
             - 🖼️ **Invoice OCR** - Extract invoice data from images (PNG, JPG, JPEG) and PDFs using Groq AI (Llama 4 Maverick model)
@@ -214,6 +214,12 @@ jobs:
             - 🎨 **Modern UI** - JetBrains Toolbox-inspired design with dark/light theme support
             - 🔑 **API Key Rotation** - Automatically rotate through multiple Groq API keys to avoid rate limits
             - 📜 **History** - View previously exported Excel files
+            - 📍 **Flexible API Keys Location** - Supports multiple standard locations for api_keys.txt
+
+            ### API Keys File Locations
+            The application searches for `api_keys.txt` in these locations (in order):
+            - **Windows**: `%USERPROFILE%\.zer0ne-ocr\`, AppData, installation dir
+            - **Linux/macOS**: `~/.zer0ne-ocr/`, current dir, installation dir
 
             ### Installation
             - **Windows**: Download and run `Zer0ne-OCR-${{ env.VERSION }}.msi`
