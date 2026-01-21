@@ -41,9 +41,68 @@ jobs:
       - name: Test MSI Installation
         run: |
           $msiFile = Get-ChildItem -Path "composeApp/build/compose/binaries/main/msi/*.msi" | Select-Object -First 1
-          Write-Host "Testing MSI: $($msiFile.FullName)"
-          Start-Process msiexec.exe -ArgumentList "/i", "`"$($msiFile.FullName)`"", "/qn", "/norestart" -Wait -NoNewWindow
-          Write-Host "MSI installation test completed"
+          Write-Host "=== Testing MSI: $($msiFile.FullName) ==="
+          Write-Host "File size: $([math]::Round($msiFile.Length / 1MB, 2)) MB"
+          
+          # Install MSI silently
+          Write-Host "`n=== Installing MSI... ==="
+          $process = Start-Process msiexec.exe -ArgumentList "/i", "`"$($msiFile.FullName)`"", "/qn", "/norestart", "/l*v", "install.log" -Wait -PassThru -NoNewWindow
+          Write-Host "Installation exit code: $($process.ExitCode)"
+          
+          # Show install log if failed
+          if ($process.ExitCode -ne 0) {
+            Write-Host "=== Installation Log (last 50 lines) ==="
+            Get-Content install.log -Tail 50
+          }
+          
+          # Find installation directory
+          Write-Host "`n=== Searching for installed application... ==="
+          $installPaths = @(
+            "$env:ProgramFiles\Zer0ne-OCR",
+            "$env:LOCALAPPDATA\Zer0ne-OCR",
+            "$env:LOCALAPPDATA\Programs\Zer0ne-OCR"
+          )
+          
+          $foundPath = $null
+          foreach ($path in $installPaths) {
+            if (Test-Path $path) {
+              Write-Host "Found installation at: $path"
+              $foundPath = $path
+              break
+            }
+          }
+          
+          if ($foundPath) {
+            Write-Host "`n=== Installation contents ==="
+            Get-ChildItem -Recurse $foundPath | Select-Object FullName, Length | Format-Table -AutoSize
+            
+            # Try to find and run the exe
+            $exeFile = Get-ChildItem -Path $foundPath -Filter "*.exe" -Recurse | Select-Object -First 1
+            if ($exeFile) {
+              Write-Host "`n=== Found executable: $($exeFile.FullName) ==="
+              Write-Host "Attempting to start application (will timeout after 10s)..."
+              
+              # Start the app and let it run briefly
+              $appProcess = Start-Process -FilePath $exeFile.FullName -PassThru
+              Start-Sleep -Seconds 10
+              
+              if (!$appProcess.HasExited) {
+                Write-Host "Application is running! (PID: $($appProcess.Id))"
+                Write-Host "Stopping application..."
+                Stop-Process -Id $appProcess.Id -Force
+                Write-Host "SUCCESS: Application started and ran correctly!"
+              } else {
+                Write-Host "Application exited with code: $($appProcess.ExitCode)"
+              }
+            }
+          } else {
+            Write-Host "WARNING: Could not find installation directory"
+          }
+          
+          # Uninstall
+          Write-Host "`n=== Uninstalling... ==="
+          Start-Process msiexec.exe -ArgumentList "/x", "`"$($msiFile.FullName)`"", "/qn", "/norestart" -Wait -NoNewWindow
+          Write-Host "Uninstallation complete"
         shell: pwsh
         continue-on-error: true
 
