@@ -63,17 +63,25 @@ compose.desktop {
     application {
         mainClass = "ma.zer0ne.ocr.MainKt"
 
+        // Enable build optimization for smaller package size
+        buildTypes.release.proguard {
+            configurationFiles.from(project.file("compose-desktop.pro"))
+            isEnabled.set(true)
+        }
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Zer0ne-OCR"
-            packageVersion = "0.0.1"
+            packageVersion = "1.0.0"
             description = "AI-powered Invoice OCR Application"
             vendor = "Zer0ne"
             copyright = "© 2026 Zer0ne. All rights reserved."
 
+            // Include only necessary JDK modules for smaller size
+            modules("java.base", "java.desktop", "java.logging", "java.naming", "java.sql", "jdk.unsupported")
+
             windows {
                 menuGroup = "Zer0ne"
-                // Generates a UUID for upgradeUuid (required for MSI)
                 upgradeUuid = "e8c9a5f2-4b3d-4e6a-9f1c-8d7b6a5e4c3d"
                 dirChooser = true
                 perUserInstall = true
