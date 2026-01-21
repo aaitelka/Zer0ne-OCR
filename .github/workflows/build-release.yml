@@ -19,11 +19,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+        shell: bash
 
       - name: Build MSI
-        run: ./gradlew :composeApp:packageMsi
+        run: ./gradlew :composeApp:packageMsi --no-daemon --stacktrace
 
       - name: Upload MSI
         uses: actions/upload-artifact@v4
@@ -43,11 +44,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Build DMG
-        run: ./gradlew :composeApp:packageDmg
+        run: ./gradlew :composeApp:packageDmg --no-daemon --stacktrace
 
       - name: Upload DMG
         uses: actions/upload-artifact@v4
@@ -67,11 +68,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Install required packages
+        run: sudo apt-get update && sudo apt-get install -y fakeroot
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Build DEB
-        run: ./gradlew :composeApp:packageDeb
+        run: ./gradlew :composeApp:packageDeb --no-daemon --stacktrace
 
       - name: Upload DEB
         uses: actions/upload-artifact@v4
@@ -90,6 +94,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
