@@ -159,3 +159,23 @@ jobs:
             artifacts/macos-dmg/*.dmg
             artifacts/linux-deb/*.deb
           generate_release_notes: true
+          body: |
+            ## 🚀 First Alpha Release
+
+            ### Features
+            - 🖼️ **Invoice OCR** - Extract invoice data from images (PNG, JPG, JPEG) and PDFs using Groq AI (Llama 4 Maverick model)
+            - 📊 **Excel Export** - Automatically export extracted data to Excel files
+            - 🔄 **PDF Tools** - Convert PDFs to images and vice versa
+            - 📁 **Batch Processing** - Process multiple files at once
+            - 🎨 **Modern UI** - JetBrains Toolbox-inspired design with dark/light theme support
+            - 🔑 **API Key Rotation** - Automatically rotate through multiple Groq API keys to avoid rate limits
+            - 📜 **History** - View previously exported Excel files
+
+            ### Installation
+            - **Windows**: Download and run `Zer0ne-OCR-*.msi`
+            - **macOS**: Download and mount `Zer0ne-OCR-*.dmg`
+            - **Linux**: Download and install `zer0ne-ocr_*_amd64.deb`
+
+            ### Requirements
+            - JDK 17 or higher (bundled in installers)
+            - [Groq API Key(s)](https://console.groq.com/keys)
