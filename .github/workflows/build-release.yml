@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  VERSION: ${{ github.ref_name }}
+  VERSION: "1.0.0-beta"
 
 jobs:
   build-windows:
@@ -26,34 +26,24 @@ jobs:
         run: chmod +x ./gradlew
         shell: bash
 
-      - name: Build Release MSI
-        run: ./gradlew :composeApp:packageReleaseMsi --no-daemon --stacktrace
-
-      - name: List build output
-        run: |
-          Get-ChildItem -Recurse composeApp/build/compose/binaries/
-        shell: pwsh
+      - name: Build MSI
+        run: ./gradlew :composeApp:packageMsi --no-daemon --stacktrace
 
       - name: Rename MSI with version
         run: |
-          $version = "${{ github.ref_name }}".TrimStart('v')
-          $msiFile = Get-ChildItem -Path "composeApp/build/compose/binaries/main-release/msi/*.msi" | Select-Object -First 1
-          $newName = "Zer0ne-OCR-$version.msi"
+          $msiFile = Get-ChildItem -Path "composeApp/build/compose/binaries/main/msi/*.msi" | Select-Object -First 1
+          $newName = "Zer0ne-OCR-${{ env.VERSION }}.msi"
           Rename-Item -Path $msiFile.FullName -NewName $newName
           Write-Host "Renamed to: $newName"
+          Write-Host "File size: $([math]::Round((Get-Item "composeApp/build/compose/binaries/main/msi/$newName").Length / 1MB, 2)) MB"
         shell: pwsh
 
       - name: Test MSI Installation
         run: |
-          $msiFile = Get-ChildItem -Path "composeApp/build/compose/binaries/main-release/msi/*.msi" | Select-Object -First 1
+          $msiFile = Get-ChildItem -Path "composeApp/build/compose/binaries/main/msi/*.msi" | Select-Object -First 1
           Write-Host "Testing MSI: $($msiFile.FullName)"
-          Write-Host "File size: $([math]::Round($msiFile.Length / 1MB, 2)) MB"
-          # Validate MSI
-          Start-Process msiexec.exe -ArgumentList "/i", "`"$($msiFile.FullName)`"", "/qn", "/norestart", "TARGETDIR=C:\TestInstall" -Wait -NoNewWindow
-          if (Test-Path "C:\TestInstall") {
-            Write-Host "Installation directory created successfully"
-            Get-ChildItem -Recurse "C:\TestInstall" | Select-Object FullName
-          }
+          Start-Process msiexec.exe -ArgumentList "/i", "`"$($msiFile.FullName)`"", "/qn", "/norestart" -Wait -NoNewWindow
+          Write-Host "MSI installation test completed"
         shell: pwsh
         continue-on-error: true
 
@@ -61,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-msi
-          path: composeApp/build/compose/binaries/main-release/msi/*.msi
+          path: composeApp/build/compose/binaries/main/msi/*.msi
 
   build-macos:
     runs-on: macos-latest
@@ -78,24 +68,22 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build Release DMG
-        run: ./gradlew :composeApp:packageReleaseDmg --no-daemon --stacktrace
+      - name: Build DMG
+        run: ./gradlew :composeApp:packageDmg --no-daemon --stacktrace
 
       - name: Rename DMG with version
         run: |
-          version="${{ github.ref_name }}"
-          version="${version#v}"
-          dmgFile=$(find composeApp/build/compose/binaries/main-release/dmg -name "*.dmg" | head -1)
-          newName="Zer0ne-OCR-${version}.dmg"
-          mv "$dmgFile" "composeApp/build/compose/binaries/main-release/dmg/${newName}"
+          dmgFile=$(find composeApp/build/compose/binaries/main/dmg -name "*.dmg" | head -1)
+          newName="Zer0ne-OCR-${{ env.VERSION }}.dmg"
+          mv "$dmgFile" "composeApp/build/compose/binaries/main/dmg/${newName}"
           echo "Renamed to: ${newName}"
-          ls -lh composeApp/build/compose/binaries/main-release/dmg/
+          ls -lh composeApp/build/compose/binaries/main/dmg/
 
       - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
           name: macos-dmg
-          path: composeApp/build/compose/binaries/main-release/dmg/*.dmg
+          path: composeApp/build/compose/binaries/main/dmg/*.dmg
 
   build-linux:
     runs-on: ubuntu-latest
@@ -115,24 +103,22 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build Release DEB
-        run: ./gradlew :composeApp:packageReleaseDeb --no-daemon --stacktrace
+      - name: Build DEB
+        run: ./gradlew :composeApp:packageDeb --no-daemon --stacktrace
 
       - name: Rename DEB with version
         run: |
-          version="${{ github.ref_name }}"
-          version="${version#v}"
-          debFile=$(find composeApp/build/compose/binaries/main-release/deb -name "*.deb" | head -1)
-          newName="zer0ne-ocr_${version}_amd64.deb"
-          mv "$debFile" "composeApp/build/compose/binaries/main-release/deb/${newName}"
+          debFile=$(find composeApp/build/compose/binaries/main/deb -name "*.deb" | head -1)
+          newName="zer0ne-ocr_${{ env.VERSION }}_amd64.deb"
+          mv "$debFile" "composeApp/build/compose/binaries/main/deb/${newName}"
           echo "Renamed to: ${newName}"
-          ls -lh composeApp/build/compose/binaries/main-release/deb/
+          ls -lh composeApp/build/compose/binaries/main/deb/
 
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
           name: linux-deb
-          path: composeApp/build/compose/binaries/main-release/deb/*.deb
+          path: composeApp/build/compose/binaries/main/deb/*.deb
 
   release:
     needs: [build-windows, build-macos, build-linux]
@@ -158,9 +144,8 @@ jobs:
             artifacts/windows-msi/*.msi
             artifacts/macos-dmg/*.dmg
             artifacts/linux-deb/*.deb
-          generate_release_notes: true
           body: |
-            ## 🚀 First Alpha Release
+            ## 🚀 First Beta Release - v${{ env.VERSION }}
 
             ### Features
             - 🖼️ **Invoice OCR** - Extract invoice data from images (PNG, JPG, JPEG) and PDFs using Groq AI (Llama 4 Maverick model)
@@ -172,10 +157,9 @@ jobs:
             - 📜 **History** - View previously exported Excel files
 
             ### Installation
-            - **Windows**: Download and run `Zer0ne-OCR-*.msi`
-            - **macOS**: Download and mount `Zer0ne-OCR-*.dmg`
-            - **Linux**: Download and install `zer0ne-ocr_*_amd64.deb`
+            - **Windows**: Download and run `Zer0ne-OCR-${{ env.VERSION }}.msi`
+            - **macOS**: Download and mount `Zer0ne-OCR-${{ env.VERSION }}.dmg`
+            - **Linux**: Download and install `zer0ne-ocr_${{ env.VERSION }}_amd64.deb`
 
             ### Requirements
-            - JDK 17 or higher (bundled in installers)
             - [Groq API Key(s)](https://console.groq.com/keys)

@@ -63,11 +63,6 @@ compose.desktop {
     application {
         mainClass = "ma.zer0ne.ocr.MainKt"
 
-        // Enable build optimization for smaller package size
-        buildTypes.release.proguard {
-            configurationFiles.from(project.file("compose-desktop.pro"))
-            isEnabled.set(true)
-        }
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
