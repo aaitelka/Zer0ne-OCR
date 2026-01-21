@@ -66,7 +66,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Zer0ne-OCR"
-            packageVersion = "1.0.0"
+            packageVersion = "0.0.1"
             description = "AI-powered Invoice OCR Application"
             vendor = "Zer0ne"
             copyright = "© 2026 Zer0ne. All rights reserved."
