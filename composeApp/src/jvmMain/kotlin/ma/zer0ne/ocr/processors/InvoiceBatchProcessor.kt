@@ -6,6 +6,7 @@ import ma.zer0ne.ocr.converters.ExcelExporter
 import ma.zer0ne.ocr.model.InvoiceFile
 import ma.zer0ne.ocr.model.SnackbarMessage
 import ma.zer0ne.ocr.model.groq.InvoiceData
+import ma.zer0ne.ocr.utils.ApiKeysLocator
 import ma.zer0ne.ocr.utils.Logger
 import java.io.File
 
@@ -187,10 +188,11 @@ suspend fun convertPdfsToImages(
     onError: (SnackbarMessage) -> Unit = {},
     onComplete: () -> Unit
 ) {
-    val apiKeysFile = File("api_keys.txt")
-    val processor = if (apiKeysFile.exists()) {
+    val apiKeysFile = ApiKeysLocator.findApiKeysFile()
+    val processor = if (apiKeysFile != null) {
         InvoiceProcessor(apiKeysFile.absolutePath, useKeyRotation = true)
     } else {
+        Logger.log(ApiKeysLocator.getSearchLocationsInfo())
         InvoiceProcessor("")
     }
 
@@ -259,12 +261,13 @@ suspend fun processImagesToExcel(
     onError: (SnackbarMessage) -> Unit = {},
     onComplete: () -> Unit
 ) {
-    val apiKeysFile = File("api_keys.txt")
-    val processor = if (apiKeysFile.exists()) {
+    val apiKeysFile = ApiKeysLocator.findApiKeysFile()
+    val processor = if (apiKeysFile != null) {
         Logger.log("Using API keys file with rotation: ${apiKeysFile.absolutePath}")
         InvoiceProcessor(apiKeysFile.absolutePath, useKeyRotation = true)
     } else {
         Logger.log("API keys file not found, using single API key")
+        Logger.log(ApiKeysLocator.getSearchLocationsInfo())
         InvoiceProcessor(apiKey)
     }
 
@@ -290,12 +293,13 @@ suspend fun processAllInvoices(
     onComplete: () -> Unit
 ) {
     // Use API keys file with rotation for better rate limit handling
-    val apiKeysFile = File("api_keys.txt")
-    val processor = if (apiKeysFile.exists()) {
+    val apiKeysFile = ApiKeysLocator.findApiKeysFile()
+    val processor = if (apiKeysFile != null) {
         Logger.log("Using API keys file with rotation: ${apiKeysFile.absolutePath}")
         InvoiceProcessor(apiKeysFile.absolutePath, useKeyRotation = true)
     } else {
         Logger.log("API keys file not found, using single API key")
+        Logger.log(ApiKeysLocator.getSearchLocationsInfo())
         InvoiceProcessor(apiKey)
     }
 

@@ -43,6 +43,22 @@ gsk_your_third_api_key_here
 
 > ⚠️ **Important**: Never commit `api_keys.txt` to version control. It's already in `.gitignore`.
 
+#### API Keys File Location (for installed applications)
+
+The application searches for `api_keys.txt` in the following locations (in order):
+
+**Windows:**
+1. `C:\Users\{username}\.zer0ne-ocr\api_keys.txt` (recommended)
+2. Application installation directory
+3. `%LOCALAPPDATA%\Zer0ne-OCR\api_keys.txt`
+4. `%APPDATA%\Zer0ne-OCR\api_keys.txt`
+5. Desktop folder
+
+**macOS/Linux:**
+1. `~/.zer0ne-ocr/api_keys.txt` (recommended)
+2. Current working directory
+3. Application installation directory
+
 ### 3. Build and Run
 
 **macOS/Linux:**
