@@ -18,6 +18,7 @@ fun ConvertScreen(
     onFilesSelected: (List<java.io.File>) -> Unit,
     onRemoveFile: (String) -> Unit,
     onProcess: () -> Unit,
+    onStop: () -> Unit = {},
     window: ComposeWindow
 ) {
     // Check if any files are PDFs that need conversion
@@ -58,6 +59,7 @@ fun ConvertScreen(
                 processing = processing,
                 hasFiles = files.isNotEmpty(),
                 onProcess = onProcess,
+                onStop = onStop,
                 mode = buttonMode
             )
         } else {

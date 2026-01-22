@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,9 +80,9 @@ fun HistoryScreen() {
                         showDeleteConfirmation = false
                         fileToDelete = null
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = colors.error)
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
                 ) {
-                    Text("Delete")
+                    Text("Delete", color = colors.error)
                 }
             },
             dismissButton = {
@@ -91,7 +92,7 @@ fun HistoryScreen() {
                         fileToDelete = null
                     }
                 ) {
-                    Text("Cancel", color = colors.textSecondary)
+                    Text("Cancel", color = Color.White)
                 }
             },
             containerColor = colors.bgMedium,

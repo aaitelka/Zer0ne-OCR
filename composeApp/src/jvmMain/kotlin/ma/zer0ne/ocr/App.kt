@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ma.zer0ne.ocr.config.ConfigManager
@@ -46,6 +48,7 @@ fun App(window: ComposeWindow) {
     // App state
     var files by remember { mutableStateOf(listOf<InvoiceFile>()) }
     var processing by remember { mutableStateOf(false) }
+    var processingJob by remember { mutableStateOf<Job?>(null) }
     var cachedApiKey by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf(TabItem.CONVERT) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -76,6 +79,7 @@ fun App(window: ComposeWindow) {
 
     AppThemeProvider(isDarkTheme = isDarkTheme, onThemeChange = { isDarkTheme = it }) {
         MaterialTheme(colorScheme = colorScheme) {
+
             AppScaffold(
                 snackbarHostState = snackbarHostState,
                 window = window,
@@ -99,7 +103,7 @@ fun App(window: ComposeWindow) {
                 },
                 onProcess = {
                     processing = true
-                    scope.launch {
+                    processingJob = scope.launch {
                         // Check if there are PDFs to convert first
                         val hasPdfs = files.any { it.path.lowercase().endsWith(".pdf") }
 
@@ -118,6 +122,7 @@ fun App(window: ComposeWindow) {
                                 },
                                 onComplete = {
                                     processing = false
+                                    processingJob = null
                                     // Don't clear files - let user review and remove unwanted images
                                 }
                             )
@@ -148,6 +153,7 @@ fun App(window: ComposeWindow) {
                                 },
                                 onComplete = {
                                     processing = false
+                                    processingJob = null
                                     scope.launch {
                                         delay(2000)
                                         val currentFiles = files.toList()
@@ -160,6 +166,19 @@ fun App(window: ComposeWindow) {
                                 }
                             )
                         }
+                    }
+                },
+                onStop = {
+                    // Immediately cancel the processing job and clear files
+                    processingJob?.cancel()
+                    processingJob = null
+                    processing = false
+                    files = emptyList()
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Processing stopped.",
+                            duration = SnackbarDuration.Short
+                        )
                     }
                 },
                 // PDF Converter Screen
@@ -219,6 +238,7 @@ private fun AppScaffold(
     onFilesSelected: (List<File>) -> Unit,
     onRemoveFile: (String) -> Unit,
     onProcess: () -> Unit,
+    onStop: () -> Unit,
     // PDF Converter Screen
     pdfToolFiles: List<File>,
     isPdfToolConverting: Boolean,
@@ -237,16 +257,7 @@ private fun AppScaffold(
 
             // Content layer
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                AppTheme.colors.bgDark.copy(alpha = 0.95f),
-                                AppTheme.colors.bgMedium.copy(alpha = 0.9f)
-                            )
-                        )
-                    )
+                modifier = Modifier.fillMaxSize()
             ) {
                 // Title Bar
                 CustomTitleBar(
@@ -277,6 +288,7 @@ private fun AppScaffold(
                         onFilesSelected = onFilesSelected,
                         onRemoveFile = onRemoveFile,
                         onProcess = onProcess,
+                        onStop = onStop,
                         pdfToolFiles = pdfToolFiles,
                         isPdfToolConverting = isPdfToolConverting,
                         pdfToolMessage = pdfToolMessage,
@@ -353,6 +365,7 @@ private fun MainContent(
     onFilesSelected: (List<File>) -> Unit,
     onRemoveFile: (String) -> Unit,
     onProcess: () -> Unit,
+    onStop: () -> Unit,
     pdfToolFiles: List<File>,
     isPdfToolConverting: Boolean,
     pdfToolMessage: String?,
@@ -381,6 +394,7 @@ private fun MainContent(
                 onFilesSelected = onFilesSelected,
                 onRemoveFile = onRemoveFile,
                 onProcess = onProcess,
+                onStop = onStop,
                 window = window
             )
         }
@@ -421,7 +435,7 @@ private fun AppSnackbarHost(snackbarHostState: SnackbarHostState) {
                         TextButton(onClick = { snackbarData.performAction() }) {
                             Text(
                                 text = snackbarData.visuals.actionLabel!!,
-                                color = AppTheme.colors.primary
+                                color = Color.White
                             )
                         }
                     }

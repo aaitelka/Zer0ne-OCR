@@ -1,161 +1,81 @@
 package ma.zer0ne.ocr.ui.components.background
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.unit.dp
-import ma.zer0ne.ocr.ui.theme.AppTheme
+import androidx.compose.ui.graphics.Color
 import ma.zer0ne.ocr.ui.theme.JBColors
+import ma.zer0ne.ocr.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun AnimatedBackgroundBubbles() {
-    val colors = AppTheme.colors
+    val isDarkTheme = LocalIsDarkTheme.current
+    // Higher alpha multiplier for light mode to make gradients visible
+    val themeAlpha = if (isDarkTheme) 1f else 2.5f
 
-    // Smooth infinite transitions for continuous animation
-    val infiniteTransition1 = rememberInfiniteTransition(label = "bubble1")
-    val infiniteTransition2 = rememberInfiniteTransition(label = "bubble2")
-    val infiniteTransition3 = rememberInfiniteTransition(label = "bubble3")
-    val infiniteTransition4 = rememberInfiniteTransition(label = "bubble4")
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val width = size.width
+        val height = size.height
 
-    // Smooth Y-axis animations with extended duration for buttery smoothness
-    val offsetY1 by infiniteTransition1.animateFloat(
-        initialValue = -150f,
-        targetValue = 150f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(16000, easing = EaseInOutQuad),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY1"
-    )
+        // Two-cell gradient background - Top-Left and Bottom-Right
 
-    val offsetY2 by infiniteTransition2.animateFloat(
-        initialValue = 100f,
-        targetValue = -100f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(18000, easing = EaseInOutQuad),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY2"
-    )
-
-    val offsetY3 by infiniteTransition3.animateFloat(
-        initialValue = -120f,
-        targetValue = 120f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = EaseInOutQuad),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY3"
-    )
-
-    val offsetY4 by infiniteTransition4.animateFloat(
-        initialValue = 80f,
-        targetValue = -80f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(14000, easing = EaseInOutQuad),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY4"
-    )
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Bubble 1 - Cyan/Blue gradient (Top-Left)
-        Box(
-            modifier = Modifier
-                .size(400.dp)
-                .offset(y = offsetY1.dp, x = (-100).dp)
-                .align(Alignment.TopStart)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            JBColors.cyan.copy(alpha = 0.15f),
-                            JBColors.blue.copy(alpha = 0.08f),
-                            JBColors.blue.copy(alpha = 0.02f),
-                            JBColors.blue.copy(alpha = 0.0f)
-                        ),
-                        radius = 200f
+        // Cell 1 - Blue/Cyan/Purple (Top-Left corner, extends to center)
+        for (i in 0..3) {
+            val offsetMultiplier = 1f + (i * 0.08f)
+            val alphaMultiplier = (1f - (i * 0.2f)) * themeAlpha
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colorStops = arrayOf(
+                        0.00f to JBColors.blue.copy(alpha = (0.08f * alphaMultiplier).coerceAtMost(1f)),
+                        0.08f to JBColors.blue.copy(alpha = (0.065f * alphaMultiplier).coerceAtMost(1f)),
+                        0.15f to JBColors.cyan.copy(alpha = (0.05f * alphaMultiplier).coerceAtMost(1f)),
+                        0.25f to JBColors.cyan.copy(alpha = (0.038f * alphaMultiplier).coerceAtMost(1f)),
+                        0.35f to JBColors.purple.copy(alpha = (0.028f * alphaMultiplier).coerceAtMost(1f)),
+                        0.45f to JBColors.purple.copy(alpha = (0.018f * alphaMultiplier).coerceAtMost(1f)),
+                        0.55f to JBColors.purple.copy(alpha = (0.012f * alphaMultiplier).coerceAtMost(1f)),
+                        0.65f to JBColors.purple.copy(alpha = (0.007f * alphaMultiplier).coerceAtMost(1f)),
+                        0.75f to JBColors.purple.copy(alpha = (0.004f * alphaMultiplier).coerceAtMost(1f)),
+                        0.85f to JBColors.purple.copy(alpha = (0.002f * alphaMultiplier).coerceAtMost(1f)),
+                        0.95f to JBColors.purple.copy(alpha = (0.001f * alphaMultiplier).coerceAtMost(1f)),
+                        1.00f to Color.Transparent
                     ),
-                    shape = CircleShape
-                )
-        )
+                    center = Offset(-width * 0.2f, -height * 0.2f),
+                    radius = width * 1.3f * offsetMultiplier
+                ),
+                center = Offset(-width * 0.2f, -height * 0.2f),
+                radius = width * 1.3f * offsetMultiplier
+            )
+        }
 
-        // Bubble 2 - Purple/Magenta gradient (Bottom-Right)
-        Box(
-            modifier = Modifier
-                .size(350.dp)
-                .offset(y = offsetY2.dp, x = 100.dp)
-                .align(Alignment.BottomEnd)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            JBColors.purple.copy(alpha = 0.12f),
-                            JBColors.magenta.copy(alpha = 0.06f),
-                            JBColors.pink.copy(alpha = 0.02f),
-                            JBColors.pink.copy(alpha = 0.0f)
-                        ),
-                        radius = 175f
+        // Cell 2 - Pink/Magenta/Orange (Bottom-Right corner, extends to center)
+        for (i in 0..3) {
+            val offsetMultiplier = 1f + (i * 0.08f)
+            val alphaMultiplier = (1f - (i * 0.2f)) * themeAlpha
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colorStops = arrayOf(
+                        0.00f to JBColors.pink.copy(alpha = (0.07f * alphaMultiplier).coerceAtMost(1f)),
+                        0.08f to JBColors.pink.copy(alpha = (0.055f * alphaMultiplier).coerceAtMost(1f)),
+                        0.15f to JBColors.magenta.copy(alpha = (0.042f * alphaMultiplier).coerceAtMost(1f)),
+                        0.25f to JBColors.magenta.copy(alpha = (0.032f * alphaMultiplier).coerceAtMost(1f)),
+                        0.35f to JBColors.orange.copy(alpha = (0.022f * alphaMultiplier).coerceAtMost(1f)),
+                        0.45f to JBColors.orange.copy(alpha = (0.015f * alphaMultiplier).coerceAtMost(1f)),
+                        0.55f to JBColors.purple.copy(alpha = (0.01f * alphaMultiplier).coerceAtMost(1f)),
+                        0.65f to JBColors.purple.copy(alpha = (0.006f * alphaMultiplier).coerceAtMost(1f)),
+                        0.75f to JBColors.purple.copy(alpha = (0.003f * alphaMultiplier).coerceAtMost(1f)),
+                        0.85f to JBColors.purple.copy(alpha = (0.002f * alphaMultiplier).coerceAtMost(1f)),
+                        0.95f to JBColors.purple.copy(alpha = (0.001f * alphaMultiplier).coerceAtMost(1f)),
+                        1.00f to Color.Transparent
                     ),
-                    shape = CircleShape
-                )
-        )
-
-        // Bubble 3 - Green/Lime gradient (Center-Right)
-        Box(
-            modifier = Modifier
-                .size(280.dp)
-                .offset(y = offsetY3.dp, x = 80.dp)
-                .align(Alignment.CenterEnd)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            JBColors.green.copy(alpha = 0.10f),
-                            JBColors.lime.copy(alpha = 0.05f),
-                            JBColors.lime.copy(alpha = 0.01f),
-                            JBColors.lime.copy(alpha = 0.0f)
-                        ),
-                        radius = 140f
-                    ),
-                    shape = CircleShape
-                )
-        )
-
-        // Bubble 4 - Orange/Yellow gradient (Top-Right)
-        Box(
-            modifier = Modifier
-                .size(250.dp)
-                .offset(y = offsetY4.dp, x = 50.dp)
-                .align(Alignment.TopEnd)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            JBColors.orange.copy(alpha = 0.10f),
-                            JBColors.yellow.copy(alpha = 0.05f),
-                            JBColors.yellow.copy(alpha = 0.01f),
-                            JBColors.yellow.copy(alpha = 0.0f)
-                        ),
-                        radius = 125f
-                    ),
-                    shape = CircleShape
-                )
-        )
-    }
-}
-
-private val EaseInOutQuad: Easing = object : Easing {
-    override fun transform(fraction: Float): Float {
-        return if (fraction < 0.5) {
-            2 * fraction * fraction
-        } else {
-            1 - (-2 * fraction + 2).let { it * it / 2 }
+                    center = Offset(width * 1.2f, height * 1.2f),
+                    radius = width * 1.3f * offsetMultiplier
+                ),
+                center = Offset(width * 1.2f, height * 1.2f),
+                radius = width * 1.3f * offsetMultiplier
+            )
         }
     }
 }

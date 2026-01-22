@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,11 +23,12 @@ fun ActionButtons(
     processing: Boolean,
     hasFiles: Boolean,
     onProcess: () -> Unit,
+    onStop: () -> Unit = {},
     mode: ActionButtonMode = ActionButtonMode.PROCESS_IMAGES
 ) {
     val colors = AppTheme.colors
 
-    val (buttonText, processingText) = when (mode) {
+    val (buttonText, _) = when (mode) {
         ActionButtonMode.CONVERT_PDF -> Pair("Convert PDF to Images", "Converting...")
         ActionButtonMode.PROCESS_IMAGES -> Pair("Extract & Export to Excel", "Extracting...")
     }
@@ -45,32 +45,46 @@ fun ActionButtons(
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Button(
-            onClick = onProcess,
-            enabled = !processing && hasFiles,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = buttonColor,
-                disabledContainerColor = colors.bgLight
-            ),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            if (processing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
+        if (processing) {
+            // Show red Stop button when processing
+            Button(
+                onClick = onStop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.error
+                ),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(
+                    text = "Stop",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
                 )
-                Spacer(modifier = Modifier.width(8.dp))
             }
-            Text(
-                text = if (processing) processingText else buttonText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = AppTheme.colors.text
-            )
+        } else {
+            // Show normal action button when not processing
+            Button(
+                onClick = onProcess,
+                enabled = hasFiles,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    disabledContainerColor = colors.bgLight
+                ),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(
+                    text = buttonText,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
         }
     }
 }
