@@ -3,7 +3,9 @@ package ma.zer0ne.ocr.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowLeft
 import androidx.compose.material.icons.filled.*
@@ -41,13 +43,13 @@ fun SettingsScreen(
     val isDarkTheme = AppTheme.isDark
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Header with back button
+        // Header with back button (non-scrollable)
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
@@ -68,7 +70,14 @@ fun SettingsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // Scrollable content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
         // Appearance Section
         Surface(
@@ -162,11 +171,14 @@ fun SettingsScreen(
 
         // API Keys Section
         ApiKeysSection()
+
+        Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 
 @Composable
-private fun PromptConfigurationSection() {
+fun PromptConfigurationSection() {
     val colors = AppTheme.colors
     val promptConfigManager = remember { PromptConfigManager.getInstance() }
     val promptConfig by promptConfigManager.promptConfigFlow.collectAsState()
@@ -380,7 +392,7 @@ private fun PromptConfigurationSection() {
 }
 
 @Composable
-private fun ApiKeysSection() {
+fun ApiKeysSection() {
     val colors = AppTheme.colors
     val keyManager = remember { SecureApiKeyManager.getInstance() }
     val apiKeys by keyManager.apiKeysFlow.collectAsState()
