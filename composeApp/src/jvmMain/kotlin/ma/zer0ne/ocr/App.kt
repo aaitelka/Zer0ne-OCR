@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import ma.zer0ne.ocr.config.ConfigManager
 import ma.zer0ne.ocr.model.InvoiceFile
 import ma.zer0ne.ocr.processors.convertPdfsToImages
 import ma.zer0ne.ocr.processors.processImagesToExcel
@@ -49,7 +48,6 @@ fun App(window: ComposeWindow) {
     var files by remember { mutableStateOf(listOf<InvoiceFile>()) }
     var processing by remember { mutableStateOf(false) }
     var processingJob by remember { mutableStateOf<Job?>(null) }
-    var cachedApiKey by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf(TabItem.CONVERT) }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -62,12 +60,13 @@ fun App(window: ComposeWindow) {
     var showSettingsScreen by remember { mutableStateOf(false) }
     var isDarkTheme by remember { mutableStateOf(true) }
 
-    val configManager = remember { ConfigManager() }
     val scope = rememberCoroutineScope()
 
     // Initialize on startup
     LaunchedEffect(Unit) {
-        cachedApiKey = configManager.getApiKey()
+        if (!SecureApiKeyManager.getInstance().hasKeys()) {
+            showApiKeyDialog = true
+        }
         setupDragAndDrop(window) { droppedFiles ->
             files = files + filesToInvoiceFiles(droppedFiles)
         }
@@ -130,7 +129,7 @@ fun App(window: ComposeWindow) {
                             // Step 2: Process images to Excel
                             processImagesToExcel(
                                 files = files,
-                                apiKey = cachedApiKey ?: "",
+                                apiKey = SecureApiKeyManager.getInstance().getNextApiKey() ?: "",
                                 onUpdate = { updatedFiles -> files = updatedFiles },
                                 onError = { message ->
                                     scope.launch {

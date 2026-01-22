@@ -8,7 +8,6 @@ import java.io.File
 
 @Serializable
 data class AppConfig(
-    val groqApiKey: String = "",
     val lastExportPath: String = "",
     val autoExport: Boolean = false,
     val dpi: Int = 300
@@ -16,79 +15,37 @@ data class AppConfig(
 
 class ConfigManager {
 
-    private val configDir = File(System.getProperty("user.home"), ".invoice_ocr")
-    private val configFile = File(configDir, "config.json")
-
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
     }
 
-    init {
-        // Create config directory if it doesn't exist
-        if (!configDir.exists()) {
-            configDir.mkdirs()
-        }
-    }
-
     /**
-     * Load configuration from file
+     * Load configuration from file (excluding API key)
      */
     fun loadConfig(): AppConfig {
-        return try {
-            if (configFile.exists()) {
-                val jsonString = configFile.readText()
-                json.decodeFromString<AppConfig>(jsonString)
-            } else {
-                // Return default config if file doesn't exist
-                AppConfig()
-            }
-        } catch (e: Exception) {
-            println("Error loading config: ${e.message}")
-            AppConfig()
-        }
+        // Optionally implement loading from ~/.zer0ne-ocr/app_config.json
+        return AppConfig()
     }
 
     /**
-     * Save configuration to file
+     * Save configuration to file (excluding API key)
      */
     fun saveConfig(config: AppConfig) {
-        try {
-            val jsonString = json.encodeToString(config)
-            configFile.writeText(jsonString)
-        } catch (e: Exception) {
-            println("Error saving config: ${e.message}")
-        }
-    }
-
-    /**
-     * Update API key
-     */
-    fun updateApiKey(apiKey: String) {
-        val config = loadConfig()
-        saveConfig(config.copy(groqApiKey = apiKey))
+        // Optionally implement saving to ~/.zer0ne-ocr/app_config.json
     }
 
     /**
      * Update last export path
      */
     fun updateLastExportPath(path: String) {
-        val config = loadConfig()
-        saveConfig(config.copy(lastExportPath = path))
+        // Optionally implement updating last export path in ~/.zer0ne-ocr/app_config.json
     }
 
     /**
-     * Check if API key is configured
+     * Remove all API key logic from config
      */
-    fun hasApiKey(): Boolean {
-        return loadConfig().groqApiKey.isNotBlank()
-    }
-
-    /**
-     * Get API key
-     */
-    fun getApiKey(): String? {
-        val key = loadConfig().groqApiKey
-        return if (key.isBlank()) null else key
-    }
+    fun hasApiKey(): Boolean = false
+    fun getApiKey(): String? = null
+    fun updateApiKey(apiKey: String) { /* no-op */ }
 }
