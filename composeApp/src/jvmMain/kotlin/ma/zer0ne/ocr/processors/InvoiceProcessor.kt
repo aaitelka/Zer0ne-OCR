@@ -1,6 +1,5 @@
 package ma.zer0ne.ocr.processors
 
-// InvoiceProcessor.kt
 import kotlinx.coroutines.*
 import ma.zer0ne.ocr.config.ApiKeyManager
 import ma.zer0ne.ocr.converters.PdfToImageConverter
@@ -15,7 +14,7 @@ import java.io.File
  * - Handles rate limits (429) by switching to another key
  * - Retries with different keys on failure
  */
-class InvoiceProcessor {
+class InvoiceProcessor : IInvoiceProcessor {
     private var singleKeyService: GroqApiService? = null
     private var apiKeyManager: ApiKeyManager? = null
     private val pdfConverter = PdfToImageConverter()
@@ -59,7 +58,7 @@ class InvoiceProcessor {
      * Split a PDF file into individual image files (one per page)
      * Returns list of image files without processing them
      */
-    suspend fun splitPdfToImages(pdfFile: File): List<File> = withContext(Dispatchers.IO) {
+    override suspend fun splitPdfToImages(pdfFile: File): List<File> = withContext(Dispatchers.IO) {
         Logger.log("Splitting PDF to images: ${pdfFile.name}")
 
         // Create a unique temp directory for this PDF
@@ -170,9 +169,9 @@ class InvoiceProcessor {
      * @param onProgress Callback for progress updates
      * @return InvoiceData extracted from the file
      */
-    suspend fun processInvoice(
+    override suspend fun processInvoice(
         file: File,
-        onProgress: suspend (String) -> Unit = {}
+        onProgress: suspend (String) -> Unit
     ): InvoiceData = withContext(Dispatchers.IO) {
         try {
             onProgress("Processing ${file.name}...")
@@ -320,7 +319,7 @@ class InvoiceProcessor {
     /**
      * Clean up resources
      */
-    fun cleanup() {
+    override fun cleanup() {
         singleKeyService?.close()
         tempDir.deleteRecursively()
     }

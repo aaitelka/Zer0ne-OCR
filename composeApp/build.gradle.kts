@@ -46,6 +46,9 @@ kotlin {
             // Logging
             implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
             implementation("ch.qos.logback:logback-classic:1.4.14")
+
+            //argon2 for password hashing
+            implementation("de.mkammerer:argon2-jvm:2.12")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

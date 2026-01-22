@@ -2,11 +2,11 @@ package ma.zer0ne.ocr.processors
 
 import kotlinx.coroutines.delay
 import ma.zer0ne.ocr.model.FileStatus
+import ma.zer0ne.ocr.config.SecureApiKeyManager
 import ma.zer0ne.ocr.converters.ExcelExporter
 import ma.zer0ne.ocr.model.InvoiceFile
 import ma.zer0ne.ocr.model.SnackbarMessage
 import ma.zer0ne.ocr.model.groq.InvoiceData
-import ma.zer0ne.ocr.utils.ApiKeysLocator
 import ma.zer0ne.ocr.utils.Logger
 import java.io.File
 
@@ -14,7 +14,7 @@ import java.io.File
  * Handles the batch processing of invoice files
  */
 class InvoiceBatchProcessor(
-    private val processor: InvoiceProcessor,
+    private val processor: IInvoiceProcessor,
     private val onUpdate: (List<InvoiceFile>) -> Unit,
     private val onError: (SnackbarMessage) -> Unit
 ) {
@@ -188,11 +188,12 @@ suspend fun convertPdfsToImages(
     onError: (SnackbarMessage) -> Unit = {},
     onComplete: () -> Unit
 ) {
-    val apiKeysFile = ApiKeysLocator.findApiKeysFile()
-    val processor = if (apiKeysFile != null) {
-        InvoiceProcessor(apiKeysFile.absolutePath, useKeyRotation = true)
+    val keyManager = SecureApiKeyManager.getInstance()
+    val processor: IInvoiceProcessor = if (keyManager.hasKeys()) {
+        Logger.log("Using secure API key storage with ${keyManager.getTotalKeysCount()} keys")
+        InvoiceProcessorSecure(keyManager)
     } else {
-        Logger.log(ApiKeysLocator.getSearchLocationsInfo())
+        Logger.log("No API keys found in secure storage")
         InvoiceProcessor("")
     }
 
@@ -217,7 +218,7 @@ suspend fun convertPdfsToImages(
 
                     if (imageFiles.isNotEmpty()) {
                         // Create InvoiceFile entries for each page
-                        val pageFiles = imageFiles.mapIndexed { index, imageFile ->
+                        val pageFiles = imageFiles.mapIndexed { index: Int, imageFile: File ->
                             InvoiceFile(
                                 id = "${file.id}_page_${index + 1}",
                                 name = "${invoiceFile.nameWithoutExtension}_page_${index + 1}.png",
@@ -261,13 +262,12 @@ suspend fun processImagesToExcel(
     onError: (SnackbarMessage) -> Unit = {},
     onComplete: () -> Unit
 ) {
-    val apiKeysFile = ApiKeysLocator.findApiKeysFile()
-    val processor = if (apiKeysFile != null) {
-        Logger.log("Using API keys file with rotation: ${apiKeysFile.absolutePath}")
-        InvoiceProcessor(apiKeysFile.absolutePath, useKeyRotation = true)
+    val keyManager = SecureApiKeyManager.getInstance()
+    val processor: IInvoiceProcessor = if (keyManager.hasKeys()) {
+        Logger.log("Using secure API key storage with ${keyManager.getTotalKeysCount()} keys")
+        InvoiceProcessorSecure(keyManager)
     } else {
-        Logger.log("API keys file not found, using single API key")
-        Logger.log(ApiKeysLocator.getSearchLocationsInfo())
+        Logger.log("No API keys found in secure storage, using provided API key")
         InvoiceProcessor(apiKey)
     }
 
@@ -292,14 +292,13 @@ suspend fun processAllInvoices(
     onError: (SnackbarMessage) -> Unit = {},
     onComplete: () -> Unit
 ) {
-    // Use API keys file with rotation for better rate limit handling
-    val apiKeysFile = ApiKeysLocator.findApiKeysFile()
-    val processor = if (apiKeysFile != null) {
-        Logger.log("Using API keys file with rotation: ${apiKeysFile.absolutePath}")
-        InvoiceProcessor(apiKeysFile.absolutePath, useKeyRotation = true)
+    // Use secure API key storage
+    val keyManager = SecureApiKeyManager.getInstance()
+    val processor: IInvoiceProcessor = if (keyManager.hasKeys()) {
+        Logger.log("Using secure API key storage with ${keyManager.getTotalKeysCount()} keys")
+        InvoiceProcessorSecure(keyManager)
     } else {
-        Logger.log("API keys file not found, using single API key")
-        Logger.log(ApiKeysLocator.getSearchLocationsInfo())
+        Logger.log("No API keys found in secure storage, using provided API key")
         InvoiceProcessor(apiKey)
     }
 
